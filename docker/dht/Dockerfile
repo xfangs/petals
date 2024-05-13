@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 
 # 设置维护者信息
-LABEL maintainer="fangyemingzz@gmail.com"
+LABEL maintainer="fangyemingzz@gmaill.com"
 
 # 设置工作目录
 WORKDIR /home
@@ -19,13 +19,16 @@ RUN apt-get update && \
   git \
   python3 \
   python3-pip \
-  && apt-get clean autoclean && rm -rf /var/lib/apt/lists/{apt,dpkg,cache,log} /tmp/* /var/tmp/*
+  && apt-get clean autoclean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# 安装Python依赖
-RUN python3 -m pip install --no-cache-dir "torch>=1.12" git+https://github.com/HyperdustLab/petals
+# 安装Petals
+RUN python3 -m pip install git+https://github.com/xfangs/petals.git
 
-# 设置工作目录为petals目录
-WORKDIR /home/petals
+# 复制identity文件到工作目录（确保该文件存在于您的上下文中）
+# COPY bootstrap1.id /home/bootstrap1.id
+
+# 设置环境变量
+ENV INITIAL_PEERS=""
 
 # 设置默认命令
-CMD ["python3", "-m", "petals.cli.run_dht", "--host_maddrs", "/ip4/0.0.0.0/tcp/31337", "--identity_path", "bootstrap1.id"]
+CMD ["sh", "-c", "exec python3 -m petals.cli.run_dht --host_maddrs /ip4/0.0.0.0/tcp/31337 --identity_path /home/bootstrap1.id --initial_peers $INITIAL_PEERS"]
