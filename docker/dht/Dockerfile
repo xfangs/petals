@@ -1,35 +1,31 @@
-# 使用基础镜像
-FROM ubuntu:20.04
+# 使用官方的 Python 镜像作为基础镜像
+FROM python:3.12-slim
 
-# 设置维护者信息
-LABEL maintainer="fangyemingzz@gmaill.com"
+# 更新软件包列表并安装必要的软件包
+RUN apt update && apt install -y \
+  python3-pip \
+  python3-venv \
+  python-is-python3 \
+  && apt clean
 
 # 设置工作目录
-WORKDIR /home
+WORKDIR /app
 
-# 设置语言环境
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
+# 创建虚拟环境
+RUN python3 -m venv /app/myenv
 
-# 更新apt并安装必要的软件包
-RUN apt-get update && \
-  apt-get install -y --no-install-recommends \
-  build-essential \
-  wget \
-  git \
-  python3 \
-  python3-pip \
-  && apt-get clean autoclean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# 激活虚拟环境并安装 petals 包
+RUN /app/myenv/bin/pip install --upgrade pip \
+  && /app/myenv/bin/pip install git+https://github.com/bigscience-workshop/petals
 
-# 安装Petals及其依赖
-RUN python3 -m pip install git+https://github.com/xfangs/petals.git && \
-  python3 -m pip install tokenizers==0.14.1 transformers -U
+# 复制本地文件到容器中
+COPY . /app
 
-# 复制identity文件到工作目录（确保该文件存在于您的上下文中）
-#COPY bootstrap1.id /home/bootstrap1.id
+# 设置环境变量以使用虚拟环境中的 Python 和 pip
+ENV PATH="/app/myenv/bin:$PATH"
 
 # 设置环境变量
 ENV INITIAL_PEERS=""
 
-# 设置默认命令
-CMD ["sh", "-c", "exec python3 -m petals.cli.run_dht --host_maddrs /ip4/0.0.0.0/tcp/31337 --identity_path /home/bootstrap1.id --initial_peers $INITIAL_PEERS"]
+# 运行 petals DHT 并输出日志到标准输出
+CMD ["sh", "-c", "exec python3 -m petals.cli.run_dht --host_maddrs /ip4/0.0.0.0/tcp/31337 --identity_path /home/bootstrap1.id ${INITIAL_PEERS:+--initial_peers $INITIAL_PEERS}"]
