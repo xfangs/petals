@@ -21,11 +21,12 @@ RUN apt-get update && \
   python3-pip \
   && apt-get clean autoclean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# 安装Petals
-RUN python3 -m pip install git+https://github.com/xfangs/petals.git
+# 安装Petals及其依赖
+RUN python3 -m pip install git+https://github.com/xfangs/petals.git && \
+  python3 -m pip install tokenizers==0.14.1 transformers -U
 
 # 复制identity文件到工作目录（确保该文件存在于您的上下文中）
-# COPY bootstrap1.id /home/bootstrap1.id
+#COPY bootstrap1.id /home/bootstrap1.id
 
 # 设置环境变量
 ENV INITIAL_PEERS=""
