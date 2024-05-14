@@ -22,9 +22,10 @@ RUN conda install python~=3.10.12 pip && \
 VOLUME /cache
 ENV PETALS_CACHE=/cache
 ENV HF_TOKEN=""
+ENV INITIAL_PEERS=""
 
 COPY . petals/
 RUN pip install --no-cache-dir -e petals
 
 WORKDIR /home/petals/
-CMD bash
+CMD ["python", "-m", "petals.cli.run_server", "--initial_peers", "${INITIAL_PEERS}"]
